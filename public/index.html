@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <script src="https://cdn.jsdelivr.net/npm/vue"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <title>Tip Distribution</title>
+</head>
+<body>
+  <div id="app">
+    <div class="container">
+      <header>
+        <h3 class="header red-text text-accent-1">Tip Distribution</h3>
+      </header>
+      <hr>
+      <div class="row">
+        <div class="input-field col s12">
+          <input v-model="totalTip" id="tip" type="number" class="validate">
+          <label class="active" for="tip">チップ合計($)</label>
+        </div>
+
+        <div class="col s12">
+          <button @click="add" class="btn-floating waves-effect waves-light">
+            <i class="material-icons">add</i>
+          </button>
+        </div>
+
+        
+        <div v-for="(item, index) in items" :key="index" class="col s12">
+          <div class="row">
+            <div class="input-field col s4">
+              <input v-model="item.time" id="time" type="number" class="validate">
+              <label class="active" for="time">時間</label>
+            </div>
+            <div class="col s2">時間働いた人が</div>
+            <div class="input-field col s4">
+              <input v-model="item.parson" id="parson" type="number" class="validate">
+              <label class="active" for="parson">人数</label>
+            </div>
+            <div class="col s1">人</div>
+            <div class="col s1">
+              <button @click="clear(index)" class="btn-floating waves-effect waves-light red">
+                <i class="material-icons">clear</i>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="col s12">
+          <button @click="calculate" class="btn wave-effect waves-light">計算！</button>
+        </div>
+
+        <div v-show="results.length > 0" class="col s12">
+          <h5 class="red-text text-accent-1">計算結果</h5>
+          <div class="row">
+            <div v-for="(result, index) in results" :key="index" class="col s12">
+              <div class="row">
+                <div class="col s3">{{ result.time }}時間</div>
+                <div class="col s3">働いた人は</div>
+                <div class="col s3">${{ result.tip }}</div>
+                <div class="col s3">もらえる！</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div v-show="error" class="col s12 red-text">
+          エラー！入力値にミスがあります！
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+
+<script>
+  var app = new Vue({
+    el: '#app',
+    data: {
+      totalTip: 0,
+      items: [{ id: 1, time: 1, parson: 1}],
+      counter: 1,
+      error: false,
+      results: []
+    },
+    methods: {
+      add: function() {
+        this.counter++;
+        this.items.push({id: this.counter, time: 1, parson: 1});
+      },
+      clear: function(index) {
+        this.items.splice(index, 1);
+      },
+      calculate: function() {
+        this.error = false
+        this.results = []
+        const totalTime = this.items.reduce((total, item) => total + parseFloat(item.time)*parseFloat(item.parson), 0);
+        if (!this.validate(totalTime, this.totalTip, this.items)) {
+          this.error = true
+          return
+        }
+
+        this.results = this.items.map((item) => {
+          return {
+            time: item.time,
+            tip: (parseFloat(this.totalTip)*item.time/totalTime).toFixed(2)
+          }
+        });
+      },
+      validate: function(totalTime, totalTip, items) {
+        if (totalTime <= 0 || isNaN(parseFloat(totalTime))) {
+          return false
+        }
+        if (isNaN(parseFloat(totalTip))) {
+          return false
+        }
+        if (items.length < 1) {
+          return false
+        }
+        items.forEach(item => {
+          if (isNaN(parseFloat(item.time)) || isNaN(parseFloat(item.parson))) {
+            return false
+          }
+        });
+        return true
+      }
+    }
+  })
+</script>
+</html>
